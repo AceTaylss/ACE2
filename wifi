@@ -1,0 +1,41 @@
+import pywifi
+from pywifi import const
+
+def hackear_wifi():
+    wifi = pywifi.PyWiFi()  # Inicializar la interfaz WiFi
+    ifaces = wifi.interfaces()[0]  # Obtener la interfaz WiFi
+    
+    ifaces.scan()  # Escanear redes WiFi cercanas
+    redes = ifaces.scan_results()
+    
+    for red in redes:
+        ssid = red.ssid
+        if red.akm[0] == const.AKM_TYPE_WPA2PSK:  # Verificar si es una red protegida con WPA2-PSK
+            print(f"Red WiFi encontrada: {ssid}")
+            
+            # Crear un perfil de red para conectar
+            perfil = pywifi.Profile()
+            perfil.ssid = ssid
+            perfil.auth = const.AUTH_ALG_OPEN
+            perfil.akm.append(const.AKM_TYPE_WPA2PSK)
+            
+            # Solicitar contraseña para conectarse
+            contraseña = input("Ingrese la contraseña de la red WiFi: ")
+            perfil.key = contraseña
+            
+            # Conectarse a la red
+            ifaces.remove_all_network_profiles()  # Eliminar perfiles anteriores
+            nuevo_perfil = ifaces.add_network_profile(perfil)
+            ifaces.connect(nuevo_perfil)
+            
+            # Verificar si la conexión fue exitosa
+            if ifaces.status() == const.IFACE_CONNECTED:
+                print("¡Conexión exitosa!")
+                print(f"Contraseña de la red WiFi {ssid}: {contraseña}")
+                break
+            else:
+                print("¡No se pudo conectar a la red!")
+        else:
+            print(f"Red WiFi encontrada: {ssid} (no protegida)")
+
+hackear_wifi()
